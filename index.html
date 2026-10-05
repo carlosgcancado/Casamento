@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Casamento Bruna e Carlos - Gestão Financeira Integrada</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        wedding: {
+                            50: '#fdf8f7',
+                            100: '#f9ebe8',
+                            200: '#f3d7d2',
+                            600: '#d97d70',
+                            700: '#bf5d50',
+                            800: '#9c453a',
+                            accent: '#d4af37'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        * { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans min-h-screen pb-10">
+
+    <!-- Overlay de Sincronização Inicial -->
+    <div id="cloudSyncOverlay" class="hidden fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-50 flex flex-col justify-center items-center text-white px-4">
+        <div class="bg-stone-900 p-6 rounded-2xl shadow-2xl max-w-xs sm:max-w-sm w-full text-center border border-stone-700/50 space-y-4">
+            <div class="flex justify-center">
+                <div class="animate-spin rounded-full h-10 w-10 border-4 border-rose-500 border-t-transparent"></div>
+            </div>
+            <div>
+                <h3 class="font-bold text-base text-stone-100 font-serif">Sincronizando com a Nuvem</h3>
+                <p class="text-xs text-stone-400 mt-1">Carregando os lançamentos de Bruna & Carlos...</p>
+            </div>
+            <div class="pt-2">
+                <button onclick="dismissSyncOverlay()" class="w-full active:scale-95 bg-stone-800 hover:bg-stone-700 border border-stone-700 text-white text-xs font-semibold py-2.5 rounded-xl transition">
+                    Trabalhar Offline 🔌
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header / Countdown Responsivo -->
+    <header class="bg-gradient-to-r from-rose-100 via-rose-100 to-rose-200 border-b border-rose-300 py-4 sm:py-6 px-4 shadow-sm">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="text-center sm:text-left w-full sm:w-auto">
+                <div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                    <h1 class="text-xl sm:text-3xl font-serif text-rose-950 font-bold tracking-tight">
+                        Bruna & Carlos
+                    </h1>
+                    <span id="global-sync-status" class="text-[10px] font-semibold px-2 py-0.5 rounded-full text-stone-500 bg-white/70 border border-rose-200 shadow-xs">
+                        Local
+                    </span>
+                </div>
+                <p class="text-stone-600 text-xs sm:text-sm mt-0.5">Gestão Financeira & Cronograma</p>
+            </div>
+            <div class="bg-white/90 backdrop-blur border border-rose-200 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-center shadow-xs w-full sm:w-auto">
+                <span id="countdown" class="font-bold text-rose-800 text-xs sm:text-sm block">Calculando dias...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu de Navegação Touch-Friendly -->
+    <nav class="bg-white/95 backdrop-blur border-b border-stone-200 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-6xl mx-auto px-2 sm:px-4">
+            <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-2">
+                <button onclick="alternarAba('painel')" id="tab-painel" class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 bg-rose-600 text-white shadow-xs">
+                    <span>📊</span> <span>Painel Geral</span>
+                </button>
+                <button onclick="alternarAba('contratos')" id="tab-contratos" class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 text-stone-600 hover:bg-stone-100">
+                    <span>🤝</span> <span>Contratos</span>
+                </button>
+                <button onclick="alternarAba('pagamentos')" id="tab-pagamentos" class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 text-stone-600 hover:bg-stone-100">
+                    <span>💸</span> <span>Cronograma</span>
+                </button>
+                <button onclick="alternarAba('configuracoes')" id="tab-configuracoes" class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 text-stone-600 hover:bg-stone-100">
+                    <span>⚙️</span> <span>Ajustes</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-3 sm:p-6">
+
+        <!-- ABA 1: PAINEL GERAL -->
+        <section id="conteudo-painel" class="space-y-4 sm:space-y-6">
+            <!-- Cards de Métricas -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs flex items-center sm:block justify-between">
+                    <div>
+                        <h3 class="text-stone-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Custo Total Previsto</h3>
+                        <p id="total-orcado" class="text-xl sm:text-2xl font-black text-stone-900 mt-0.5">R$ 0,00</p>
+                    </div>
+                    <span class="text-2xl sm:hidden">📑</span>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs flex items-center sm:block justify-between">
+                    <div>
+                        <h3 class="text-stone-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Já Quitado</h3>
+                        <p id="total-pago" class="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5">R$ 0,00</p>
+                    </div>
+                    <span class="text-2xl sm:hidden">✅</span>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs flex items-center sm:block justify-between">
+                    <div>
+                        <h3 class="text-stone-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Saldo Pendente</h3>
+                        <p id="total-pendente" class="text-xl sm:text-2xl font-black text-rose-600 mt-0.5">R$ 0,00</p>
+                    </div>
+                    <span class="text-2xl sm:hidden">⏳</span>
+                </div>
+            </div>
+
+            <!-- Alertas de Vencimento com Botão de Pagamento Direto -->
+            <div id="alerta-vencimento-secao" class="hidden bg-amber-50/70 border border-amber-200 p-3.5 sm:p-5 rounded-2xl space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-amber-950 text-xs sm:text-sm flex items-center gap-1.5">
+                        <span>⏰</span> Atenção aos Vencimentos Próximos ou Atrasados
+                    </h3>
+                    <span id="alerta-badge-qtd" class="text-[11px] font-bold px-2 py-0.5 bg-amber-200 text-amber-900 rounded-full">0</span>
+                </div>
+                <div id="lista-alertas" class="space-y-2"></div>
+            </div>
+
+            <!-- Gráfico e Resumo Geral de Todos os Contratos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                <!-- Gráfico com Filtro por Fornecedor -->
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs md:col-span-1 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm sm:text-base font-bold text-stone-900 font-serif">Gráfico de Despesas</h3>
+                            <span id="grafico-total-badge" class="text-[10px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">R$ 0,00</span>
+                        </div>
+
+                        <!-- Filtros do Gráfico -->
+                        <div class="space-y-2 bg-stone-50 p-2.5 rounded-xl border border-stone-200/70">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Filtrar Fornecedor</label>
+                                <select id="grafico-filtro-fornecedor" onchange="renderizarGrafico()" class="w-full text-xs font-semibold px-2.5 py-1.5 bg-white border border-stone-200 rounded-lg outline-none focus:ring-2 focus:ring-rose-200">
+                                    <option value="todos">Todos os Fornecedores</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Agrupar visão geral por</label>
+                                <select id="grafico-agrupamento" onchange="renderizarGrafico()" class="w-full text-xs font-semibold px-2.5 py-1.5 bg-white border border-stone-200 rounded-lg outline-none focus:ring-2 focus:ring-rose-200">
+                                    <option value="categoria">Por Categoria</option>
+                                    <option value="fornecedor">Por Fornecedor</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full relative my-2" style="height: 220px;">
+                        <canvas id="graficoCategorias"></canvas>
+                    </div>
+                </div>
+
+                <!-- Lista de Todos os Contratos Firmados -->
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-stone-200 shadow-xs md:col-span-2 space-y-3">
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-2.5">
+                        <h3 class="text-sm sm:text-base font-bold text-stone-900 font-serif">Todos os Contratos Firmados</h3>
+                        <span id="badge-total-contratos-resumo" class="text-[11px] font-semibold text-stone-500 bg-stone-100 border border-stone-200 px-2.5 py-0.5 rounded-full">
+                            0 contratos
+                        </span>
+                    </div>
+                    
+                    <!-- Lista Mobile Cards -->
+                    <div id="lista-resumida-mobile" class="md:hidden space-y-2.5 max-h-[420px] overflow-y-auto pr-1"></div>
+
+                    <!-- Tabela Desktop -->
+                    <div class="hidden md:block overflow-x-auto max-h-[420px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="sticky top-0 bg-white">
+                                <tr class="border-b text-stone-400 font-semibold text-xs">
+                                    <th class="pb-2">Fornecedor</th>
+                                    <th class="pb-2">Categoria</th>
+                                    <th class="pb-2">Total</th>
+                                    <th class="pb-2">Pago</th>
+                                    <th class="pb-2">A Pagar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpo-tabela-resumida" class="divide-y divide-stone-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 2: CONTRATOS FIRMADOS -->
+        <section id="conteudo-contratos" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <!-- Formulário de Contrato -->
+            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4 h-fit">
+                <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                    <h3 id="titulo-formulario" class="text-base font-bold text-stone-900 font-serif">Novo Contrato</h3>
+                    <span id="sync-status" class="text-[10px] text-stone-400 font-medium">Nuvem Pronta</span>
+                </div>
+                
+                <form id="form-contrato" onsubmit="salvarContrato(event)" class="space-y-3">
+                    <input type="hidden" id="contratoId">
+
+                    <div>
+                        <label class="block text-[11px] font-semibold text-stone-500 mb-1">Fornecedor / Serviço</label>
+                        <input type="text" id="fornecedor" required placeholder="Ex: Buffet Real" class="w-full px-3 py-2 border border-stone-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:ring-rose-200 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-semibold text-stone-500 mb-1">Categoria</label>
+                        <select id="categoria" required class="w-full px-3 py-2 border border-stone-200 rounded-xl text-base sm:text-sm bg-stone-50 focus:ring-2 focus:ring-rose-200 outline-none"></select>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-500 mb-1">Valor Total (R$)</label>
+                            <input type="number" step="0.01" id="valorTotal" oninput="calcularProjecaoParc()" required placeholder="0.00" class="w-full px-3 py-2 border border-stone-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:ring-rose-200 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-500 mb-1">Condição de Pagamento</label>
+                            <select id="condicao" onchange="alternarInputsCondicao()" required class="w-full px-3 py-2 border border-stone-200 rounded-xl text-base sm:text-sm bg-stone-50 focus:ring-2 focus:ring-rose-200 outline-none">
+                                <option value="À Vista">À Vista</option>
+                                <option value="Entrada + Saldo">Entrada + Saldo Parcelado</option>
+                                <option value="Parcelado Direto">Parcelado Sem Entrada</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Inputs Dinâmicos -->
+                    <div id="secao-entrada" class="hidden border border-rose-100 p-3 rounded-xl bg-rose-50/30 space-y-1">
+                        <label class="block text-[11px] font-semibold text-rose-800">Valor da Entrada (R$)</label>
+                        <input type="number" step="0.01" id="valorEntrada" oninput="calcularProjecaoParc()" placeholder="0.00" class="w-full px-3 py-2 border border-stone-200 rounded-lg text-base sm:text-sm bg-white focus:ring-2 focus:ring-rose-200 outline-none">
+                    </div>
+
+                    <div id="secao-parcelas" class="hidden border border-rose-100 p-3 rounded-xl bg-rose-50/30 space-y-1">
+                        <label class="block text-[11px] font-semibold text-rose-800">Qtd. Parcelas do Saldo</label>
+                        <input type="number" id="numParcelas" oninput="calcularProjecaoParc()" placeholder="Ex: 5" class="w-full px-3 py-2 border border-stone-200 rounded-lg text-base sm:text-sm bg-white focus:ring-2 focus:ring-rose-200 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-500 mb-1">Meio de Pagamento</label>
+                            <select id="metodo" required class="w-full px-3 py-2 border border-stone-200 rounded-xl text-base sm:text-sm bg-stone-50 focus:ring-2 focus:ring-rose-200 outline-none">
+                                <option value="PIX">PIX</option>
+                                <option value="Crédito">Cartão de Crédito</option>
+                                <option value="Débito">Cartão de Débito</option>
+                                <option value="Boleto">Boleto</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-500 mb-1">1º Vencimento</label>
+                            <input type="date" id="vencimentoInicial" required class="w-full px-3 py-2 border border-stone-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:ring-rose-200 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50/70 border border-amber-200 p-3 rounded-xl text-xs space-y-1">
+                        <span class="font-bold text-amber-900 text-[10px] uppercase block tracking-wider">Simulação do Pagamento</span>
+                        <div id="projecao-contrato-info" class="text-stone-600 leading-snug">
+                            Preencha os valores para simular.
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-1">
+                        <button type="button" id="btn-cancelar" onclick="limparFormContrato()" class="hidden w-1/3 bg-stone-200 hover:bg-stone-300 text-stone-700 font-semibold py-2.5 rounded-xl text-xs sm:text-sm transition">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="btn-submit" class="flex-1 active:scale-95 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow-xs transition">
+                            Salvar Contrato
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Contratos -->
+            <div class="lg:col-span-2 bg-white p-4 sm:p-6 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+                <div class="border-b border-stone-100 pb-3 flex justify-between items-center">
+                    <h3 class="text-base font-bold text-stone-900 font-serif">Contratos Registrados</h3>
+                    <span class="text-xs text-stone-400" id="contador-contratos">0 itens</span>
+                </div>
+
+                <!-- Lista Mobile Cards -->
+                <div id="lista-contratos-mobile" class="md:hidden space-y-3"></div>
+
+                <!-- Tabela Desktop -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b text-stone-400 font-semibold text-xs">
+                                <th class="pb-2">Fornecedor</th>
+                                <th class="pb-2">Categoria</th>
+                                <th class="pb-2">Total</th>
+                                <th class="pb-2">Pago</th>
+                                <th class="pb-2">Saldo</th>
+                                <th class="pb-2 text-right pr-2">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpo-tabela-contratos" class="divide-y divide-stone-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 3: CRONOGRAMA DE PAGAMENTO -->
+        <section id="conteudo-pagamentos" class="hidden bg-white p-4 sm:p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-stone-100 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-stone-900 font-serif">Cronograma de Parcelas</h3>
+                    <p class="text-xs text-stone-500">Toque em "Quitar" ou "Reabrir" para dar baixa nas parcelas</p>
+                </div>
+                <!-- Filtro Responsivo -->
+                <div class="w-full sm:w-auto">
+                    <select id="filtro-contrato" onchange="renderizarPagamentos()" class="w-full sm:w-auto px-3 py-2 border border-stone-200 rounded-xl text-base sm:text-xs font-medium focus:ring-2 focus:ring-rose-200 outline-none bg-stone-50">
+                        <option value="todos">Todos os Fornecedores</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Lista Mobile Cards -->
+            <div id="lista-pagamentos-mobile" class="md:hidden space-y-2.5"></div>
+
+            <!-- Tabela Desktop -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b text-stone-400 font-semibold text-xs">
+                            <th class="pb-2">Fornecedor</th>
+                            <th class="pb-2">Parcela</th>
+                            <th class="pb-2">Valor</th>
+                            <th class="pb-2">Vencimento</th>
+                            <th class="pb-2">Meio</th>
+                            <th class="pb-2">Status</th>
+                            <th class="pb-2 text-right pr-3">Baixa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-pagamentos" class="divide-y divide-stone-100"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ABA 4: CONFIGURAÇÕES -->
+        <section id="conteudo-configuracoes" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <!-- Categorias -->
+            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+                <h3 class="text-base font-bold text-stone-900 border-b border-stone-100 pb-2 font-serif">Categorias de Despesa</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="nova-categoria" placeholder="Ex: Lembrancinhas" class="flex-1 px-3 py-2 border border-stone-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:ring-rose-200 outline-none">
+                    <button onclick="adicionarCategoria()" class="active:scale-95 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition">Adicionar</button>
+                </div>
+                <div class="border border-stone-100 rounded-xl max-h-56 overflow-y-auto">
+                    <ul id="lista-categorias-config" class="divide-y divide-stone-100 text-xs sm:text-sm"></ul>
+                </div>
+            </div>
+
+            <!-- Sincronização em Nuvem -->
+            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+                <h3 class="text-base font-bold text-stone-900 border-b border-stone-100 pb-2 font-serif">Google Sheets Conectado</h3>
+                <p class="text-xs text-stone-500 leading-relaxed">
+                    Sua planilha sincroniza automaticamente as alterações feitas em qualquer dispositivo.
+                </p>
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-semibold text-stone-500">URL do Google Apps Script</label>
+                    <input type="text" id="api-url" placeholder="https://script.google.com/..." class="w-full px-3 py-2 border border-stone-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-200 outline-none font-mono">
+                </div>
+                <button onclick="salvarConfiguracaoApi()" class="w-full active:scale-95 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs">
+                    Salvar e Forçar Sincronização
+                </button>
+            </div>
+
+            <!-- Compartilhar com Celular -->
+            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-stone-200 shadow-xs space-y-3 md:col-span-2">
+                <h3 class="text-base font-bold text-stone-900 border-b border-stone-100 pb-2 font-serif">Abrir no Celular ou Compartilhar</h3>
+                <p class="text-xs text-stone-500">
+                    Gere o QR Code para abrir este painel de controle direto no celular do casal ou da assessora.
+                </p>
+                <button onclick="generateShareQr()" class="w-full sm:w-auto active:scale-95 bg-stone-100 hover:bg-stone-200 text-stone-800 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2">
+                    <span>📱</span> Gerar QR Code de Acesso
+                </button>
+                
+                <div id="qrShareContainer" class="hidden bg-stone-50 p-4 rounded-2xl border border-stone-200 flex flex-col items-center space-y-3 mt-3">
+                    <img id="qrShareImg" src="" alt="QR Code" class="rounded-xl shadow-sm border-2 border-white max-w-[170px]">
+                    <p class="text-xs text-stone-500 text-center">Aponte a câmera do celular para abrir o app.</p>
+                    <div class="w-full max-w-md">
+                        <label class="block text-[10px] uppercase font-bold text-stone-400 mb-1 text-center">Link Direto:</label>
+                        <input type="text" id="qrShareLink" readonly class="w-full text-xs text-center px-3 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none select-all text-stone-600 font-mono">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const DATA_CASAMENTO = new Date('2027-05-01T00:00:00');
+        const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbyDTjPpz3JnE8eN9TLCDxBXoo94qDnCP7YtXnf9NTGEkKZ20Qw9qVrbn1aw_HTTcyViFQ/exec";
+        
+        let state = {
+            apiUrl: localStorage.getItem('api_sheets_url') || DEFAULT_API_URL,
+            categorias: ["Buffet", "Decoração", "Vestuário", "Assessoria", "Fotografia", "Música", "Outros"],
+            contratos: [],
+            pagamentos: []
+        };
+
+        let chartInstance = null;
+
+        function formatarMoeda(valor) {
+            const num = parseFloat(valor) || 0;
+            return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        window.onload = async function() {
+            renderizarCountdown();
+            recuperarConfiguracoesLocais();
+            
+            if (state.apiUrl) {
+                document.getElementById('cloudSyncOverlay').classList.remove('hidden');
+                await loadFromCloud();
+                document.getElementById('cloudSyncOverlay').classList.add('hidden');
+            } else {
+                updateCloudStatusIndicator('disconnected', 'Nuvem Desligada');
+                carregarLocaisComoContingencia();
+                atualizarInterface();
+            }
+        };
+
+        function renderizarCountdown() {
+            const hoje = new Date();
+            hoje.setHours(0,0,0,0);
+            const diferencaTempo = DATA_CASAMENTO - hoje;
+            const diferencaDias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
+            
+            const elemento = document.getElementById('countdown');
+            if (diferencaDias > 0) {
+                elemento.innerHTML = `💍 Faltam <strong>${diferencaDias} dias</strong> para o Casamento (01/05/2027)`;
+            } else if (diferencaDias === 0) {
+                elemento.innerHTML = "🎉 É hoje o grande dia de Bruna e Carlos!";
+            } else {
+                elemento.innerHTML = "O grande dia já aconteceu! ❤️";
+            }
+        }
+
+        function alternarAba(abaDestino) {
+            const abas = ['painel', 'contratos', 'pagamentos', 'configuracoes'];
+            abas.forEach(aba => {
+                const bttn = document.getElementById(`tab-${aba}`);
+                const conteudo = document.getElementById(`conteudo-${aba}`);
+                if (aba === abaDestino) {
+                    bttn.className = "whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 bg-rose-600 text-white shadow-xs";
+                    conteudo.classList.remove('hidden');
+                } else {
+                    bttn.className = "whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 text-stone-600 hover:bg-stone-100";
+                    conteudo.classList.add('hidden');
+                }
+            });
+            if (abaDestino === 'painel') {
+                renderizarGrafico();
+            }
+        }
+
+        function alternarInputsCondicao() {
+            const condicao = document.getElementById('condicao').value;
+            const secaoEntrada = document.getElementById('secao-entrada');
+            const secaoParcelas = document.getElementById('secao-parcelas');
+            const inputVencimento = document.getElementById('vencimentoInicial');
+
+            if (condicao === 'À Vista') {
+                secaoEntrada.classList.add('hidden');
+                secaoParcelas.classList.add('hidden');
+                inputVencimento.value = obterDataHoje();
+            } else if (condicao === 'Entrada + Saldo') {
+                secaoEntrada.classList.remove('hidden');
+                secaoParcelas.classList.remove('hidden');
+                inputVencimento.value = '';
+            } else if (condicao === 'Parcelado Direto') {
+                secaoEntrada.classList.add('hidden');
+                secaoParcelas.classList.remove('hidden');
+                inputVencimento.value = '';
+            }
+            calcularProjecaoParc();
+        }
+
+        function calcularProjecaoParc() {
+            const condicao = document.getElementById('condicao').value;
+            const valorTotal = parseFloat(document.getElementById('valorTotal').value) || 0;
+            const elementoInfo = document.getElementById('projecao-contrato-info');
+
+            if (valorTotal === 0) {
+                elementoInfo.innerHTML = "Preencha os valores para simular.";
+                return;
+            }
+
+            if (condicao === 'À Vista') {
+                elementoInfo.innerHTML = `Pagamento integral de <strong>${formatarMoeda(valorTotal)}</strong>.`;
+            } 
+            else if (condicao === 'Parcelado Direto') {
+                const numP = parseInt(document.getElementById('numParcelas').value) || 1;
+                const valorParcela = valorTotal / numP;
+                elementoInfo.innerHTML = `Total de ${formatarMoeda(valorTotal)} dividido em <strong>${numP}x de ${formatarMoeda(valorParcela)}</strong>.`;
+            } 
+            else if (condicao === 'Entrada + Saldo') {
+                const entrada = parseFloat(document.getElementById('valorEntrada').value) || 0;
+                const numP = parseInt(document.getElementById('numParcelas').value) || 1;
+                const saldo = Math.max(0, valorTotal - entrada);
+                const valorParcela = saldo / numP;
+                elementoInfo.innerHTML = `Entrada de <strong>${formatarMoeda(entrada)}</strong> + <strong>${numP}x de ${formatarMoeda(valorParcela)}</strong>.`;
+            }
+        }
+
+        function obterDataHoje() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function adicionarMeses(dataString, meses) {
+            const data = new Date(dataString + 'T00:00:00');
+            data.setMonth(data.getMonth() + meses);
+            return data.toISOString().split('T')[0];
+        }
+
+        async function loadFromCloud() {
+            const url = state.apiUrl ? state.apiUrl.trim() : '';
+            if (!url) return;
+
+            updateCloudStatusIndicator('loading', 'Sincronizando...');
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+
+                if (!response.ok) throw new Error('Falha de conexão.');
+
+                const cloudState = await response.json();
+                
+                if (cloudState && typeof cloudState === 'object') {
+                    if (Array.isArray(cloudState.contratos)) state.contratos = cloudState.contratos;
+                    if (Array.isArray(cloudState.pagamentos)) state.pagamentos = cloudState.pagamentos;
+                    if (Array.isArray(cloudState.categorias)) state.categorias = cloudState.categorias;
+                    
+                    saveToStorage();
+                    atualizarInterface();
+                    updateCloudStatusIndicator('success', 'Nuvem Conectada');
+                } else {
+                    updateCloudStatusIndicator('empty', 'Nuvem Vazia');
+                }
+            } catch (error) {
+                console.warn("Erro no download:", error);
+                carregarLocaisComoContingencia();
+                atualizarInterface();
+                updateCloudStatusIndicator('error', 'Sem Conexão');
+            }
+        }
+
+        async function saveToCloud() {
+            const url = state.apiUrl ? state.apiUrl.trim() : '';
+            if (!url) return;
+
+            updateCloudStatusIndicator('loading', 'Salvando...');
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    redirect: 'follow',
+                    body: JSON.stringify({
+                        contratos: state.contratos,
+                        pagamentos: state.pagamentos,
+                        categorias: state.categorias
+                    })
+                });
+
+                if (!response.ok) throw new Error('Falha de conexão.');
+
+                const result = await response.json();
+                if (result && result.status === 'success') {
+                    updateCloudStatusIndicator('success', 'Salvo na Nuvem');
+                } else {
+                    throw new Error(result.message || 'Erro do script.');
+                }
+            } catch (error) {
+                console.error("Erro no envio:", error);
+                updateCloudStatusIndicator('error', 'Erro ao Salvar');
+            }
+        }
+
+        function updateCloudStatusIndicator(status, text) {
+            const globalIndicator = document.getElementById('global-sync-status');
+            const formIndicator = document.getElementById('sync-status');
+            const badges = [globalIndicator, formIndicator];
+
+            badges.forEach(badge => {
+                if (!badge) return;
+                badge.innerText = text || '';
+
+                switch (status) {
+                    case 'loading':
+                        badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full text-amber-700 bg-amber-50 border border-amber-200 animate-pulse";
+                        badge.innerHTML = "⏳ " + text;
+                        break;
+                    case 'success':
+                        badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full text-emerald-700 bg-emerald-50 border border-emerald-200";
+                        badge.innerHTML = "☁️ " + text;
+                        break;
+                    case 'error':
+                        badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full text-rose-700 bg-rose-50 border border-rose-200";
+                        badge.innerHTML = "⚠️ " + text;
+                        break;
+                    case 'disconnected':
+                        badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full text-stone-500 bg-stone-100 border border-stone-200";
+                        badge.innerHTML = "🔌 " + text;
+                        break;
+                    case 'empty':
+                        badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full text-sky-700 bg-sky-50 border border-sky-200";
+                        badge.innerHTML = "ℹ️ " + text;
+                        break;
+                }
+            });
+        }
+
+        function dismissSyncOverlay() {
+            document.getElementById('cloudSyncOverlay').classList.add('hidden');
+            carregarLocaisComoContingencia();
+            atualizarInterface();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('db_state_casamento', JSON.stringify(state));
+        }
+
+        function updateAndSync() {
+            saveToStorage();
+            atualizarInterface();
+            if (state.apiUrl) {
+                saveToCloud();
+            }
+        }
+
+        function carregarLocaisComoContingencia() {
+            const savedState = localStorage.getItem('db_state_casamento');
+            if (savedState) {
+                state = JSON.parse(savedState);
+            } else {
+                const jaInicializou = localStorage.getItem('ja_inicializou_demo');
+                if (!jaInicializou && state.contratos.length === 0) {
+                    gerarDadosDemonstrativos();
+                    localStorage.setItem('ja_inicializou_demo', 'true');
+                }
+            }
+        }
+
+        function gerarDadosDemonstrativos() {
+            state.contratos = [
+                {id: 111, categoria: "Buffet", fornecedor: "Espaço Elegância", valorTotal: 15000, condicao: "Entrada + Saldo", valorEntrada: 3000, numParcelas: 4, vencimentoInicial: "2026-08-01", metodo: "PIX"},
+                {id: 222, categoria: "Fotografia", fornecedor: "Lente e Amor", valorTotal: 4000, condicao: "Parcelado Direto", valorEntrada: 0, numParcelas: 4, vencimentoInicial: "2026-08-10", metodo: "Boleto"}
+            ];
+            state.pagamentos = [
+                {id: 1, idContrato: 111, numeroParcela: "Entrada", valorParcela: 3000, vencimento: "02/07/2026", status: "Pago", metodo: "PIX"},
+                {id: 2, idContrato: 111, numeroParcela: "1/4", valorParcela: 3000, vencimento: "01/08/2026", status: "Pago", metodo: "PIX"},
+                {id: 3, idContrato: 111, numeroParcela: "2/4", valorParcela: 3000, vencimento: "01/09/2026", status: "Pendente", metodo: "PIX"},
+                {id: 4, idContrato: 111, numeroParcela: "3/4", valorParcela: 3000, vencimento: "01/10/2026", status: "Pendente", metodo: "PIX"},
+                {id: 5, idContrato: 111, numeroParcela: "4/4", valorParcela: 3000, vencimento: "01/11/2026", status: "Pendente", metodo: "PIX"},
+                {id: 6, idContrato: 222, numeroParcela: "1/4", valorParcela: 1000, vencimento: "10/08/2026", status: "Pendente", metodo: "Boleto"},
+                {id: 7, idContrato: 222, numeroParcela: "2/4", valorParcela: 1000, vencimento: "10/09/2026", status: "Pendente", metodo: "Boleto"},
+                {id: 8, idContrato: 222, numeroParcela: "3/4", valorParcela: 1000, vencimento: "10/10/2026", status: "Pendente", metodo: "Boleto"},
+                {id: 9, idContrato: 222, numeroParcela: "4/4", valorParcela: 1000, vencimento: "10/11/2026", status: "Pendente", metodo: "Boleto"}
+            ];
+            saveToStorage();
+        }
+
+        async function salvarContrato(event) {
+            event.preventDefault();
+
+            const idContrato = document.getElementById('contratoId').value ? parseInt(document.getElementById('contratoId').value) : Date.now();
+            const valorTotal = parseFloat(document.getElementById('valorTotal').value);
+            const condicao = document.getElementById('condicao').value;
+            const valorEntrada = condicao === 'Entrada + Saldo' ? parseFloat(document.getElementById('valorEntrada').value) || 0 : 0;
+            const numParcelas = condicao === 'À Vista' ? 0 : parseInt(document.getElementById('numParcelas').value) || 1;
+            const vencimentoInicial = document.getElementById('vencimentoInicial').value;
+            const metodo = document.getElementById('metodo').value;
+
+            const payloadContrato = {
+                id: idContrato,
+                categoria: document.getElementById('categoria').value,
+                fornecedor: document.getElementById('fornecedor').value,
+                valorTotal: valorTotal,
+                condicao: condicao,
+                valorEntrada: valorEntrada,
+                numParcelas: numParcelas,
+                vencimentoInicial: vencimentoInicial,
+                metodo: metodo
+            };
+
+            state.contratos = state.contratos.filter(c => String(c.id) !== String(idContrato));
+            state.pagamentos = state.pagamentos.filter(p => String(p.idContrato) !== String(idContrato));
+
+            state.contratos.push(payloadContrato);
+
+            let novosPagamentos = [];
+            if (condicao === 'À Vista') {
+                novosPagamentos.push({
+                    id: Date.now() + 1,
+                    idContrato: idContrato,
+                    numeroParcela: "Única",
+                    valorParcela: valorTotal,
+                    vencimento: formatarDataInput(vencimentoInicial),
+                    status: "Pendente",
+                    metodo: metodo
+                });
+            } 
+            else if (condicao === 'Parcelado Direto') {
+                const valorParcela = valorTotal / numParcelas;
+                for (let i = 0; i < numParcelas; i++) {
+                    novosPagamentos.push({
+                        id: Date.now() + i + 1,
+                        idContrato: idContrato,
+                        numeroParcela: `${i + 1}/${numParcelas}`,
+                        valorParcela: valorParcela,
+                        vencimento: formatarDataInput(adicionarMeses(vencimentoInicial, i)),
+                        status: "Pendente",
+                        metodo: metodo
+                    });
+                }
+            } 
+            else if (condicao === 'Entrada + Saldo') {
+                novosPagamentos.push({
+                    id: Date.now() + 1,
+                    idContrato: idContrato,
+                    numeroParcela: "Entrada",
+                    valorParcela: valorEntrada,
+                    vencimento: formatarDataInput(vencimentoInicial),
+                    status: "Pendente",
+                    metodo: metodo
+                });
+                const saldoRestante = valorTotal - valorEntrada;
+                const valorParcela = saldoRestante / numParcelas;
+                for (let i = 0; i < numParcelas; i++) {
+                    novosPagamentos.push({
+                        id: Date.now() + i + 2,
+                        idContrato: idContrato,
+                        numeroParcela: `${i + 1}/${numParcelas}`,
+                        valorParcela: valorParcela,
+                        vencimento: formatarDataInput(adicionarMeses(vencimentoInicial, i)),
+                        status: "Pendente",
+                        metodo: metodo
+                    });
+                }
+            }
+
+            state.pagamentos = state.pagamentos.concat(novosPagamentos);
+            
+            limparFormContrato();
+            updateAndSync();
+        }
+
+        async function alternarStatusPagamento(idPagamento) {
+            let pg = state.pagamentos.find(p => String(p.id) === String(idPagamento));
+            if (!pg) return;
+
+            pg.status = pg.status === "Pago" ? "Pendente" : "Pago";
+            updateAndSync();
+        }
+
+        async function deletarContratoCompleto(idContrato) {
+            if (!confirm("Excluir este contrato e todas as suas parcelas da nuvem?")) return;
+
+            state.contratos = state.contratos.filter(c => String(c.id) !== String(idContrato));
+            state.pagamentos = state.pagamentos.filter(p => String(p.idContrato) !== String(idContrato));
+
+            updateAndSync();
+        }
+
+        function prepararEdicaoContrato(id) {
+            const c = state.contratos.find(x => String(x.id) === String(id));
+            if (!c) return;
+
+            document.getElementById('contratoId').value = c.id;
+            document.getElementById('titulo-formulario').textContent = "✏️ Editar Contrato";
+            document.getElementById('btn-submit').textContent = "Atualizar Contrato";
+            document.getElementById('btn-cancelar').classList.remove('hidden');
+
+            document.getElementById('fornecedor').value = c.fornecedor;
+            document.getElementById('categoria').value = c.categoria;
+            document.getElementById('valorTotal').value = c.valorTotal;
+            document.getElementById('condicao').value = c.condicao;
+            document.getElementById('valorEntrada').value = c.valorEntrada;
+            document.getElementById('numParcelas').value = c.numParcelas;
+            document.getElementById('vencimentoInicial').value = converterDataBrParaIso(c.vencimentoInicial);
+            document.getElementById('metodo').value = c.metodo;
+
+            alternarInputsCondicao();
+            alternarAba('contratos');
+            document.getElementById('form-contrato').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function limparFormContrato() {
+            document.getElementById('form-contrato').reset();
+            document.getElementById('contratoId').value = '';
+            document.getElementById('titulo-formulario').textContent = "Novo Contrato";
+            document.getElementById('btn-submit').textContent = "Salvar Contrato";
+            document.getElementById('btn-cancelar').classList.add('hidden');
+            alternarInputsCondicao();
+        }
+
+        function formatarDataInput(dataString) {
+            if (!dataString) return "";
+            if (dataString.includes('/')) return dataString;
+            const partes = dataString.split('-');
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+
+        function converterDataBrParaIso(dataBr) {
+            if (!dataBr) return "";
+            if (dataBr.includes('-')) return dataBr;
+            const partes = dataBr.split('/');
+            return `${partes[2]}-${partes[1]}-${partes[0]}`;
+        }
+
+        function converterParaObjetoData(dataStringBr) {
+            const partes = dataStringBr.split('/');
+            return new Date(partes[2], partes[1] - 1, partes[0]);
+        }
+
+        function atualizarInterface() {
+            renderizarContratos();
+            renderizarFiltrosEGridPagamentos();
+            atualizarFiltroGraficoFornecedores();
+            atualizarDashboard();
+        }
+
+        function renderizarContratos() {
+            const tbody = document.getElementById('corpo-tabela-contratos');
+            const listaMobile = document.getElementById('lista-contratos-mobile');
+            const contadorEl = document.getElementById('contador-contratos');
+            
+            tbody.innerHTML = '';
+            listaMobile.innerHTML = '';
+            contadorEl.innerText = `${state.contratos.length} cadastrados`;
+
+            if (state.contratos.length === 0) {
+                listaMobile.innerHTML = `<div class="p-6 text-center text-xs text-stone-400 bg-stone-50 rounded-xl">Nenhum contrato registrado ainda.</div>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-xs text-stone-400">Nenhum contrato cadastrado.</td></tr>`;
+                return;
+            }
+
+            state.contratos.forEach(c => {
+                const totalContrato = parseFloat(c.valorTotal) || 0;
+                const pagamentosDoContrato = state.pagamentos.filter(p => String(p.idContrato) === String(c.id));
+                const pago = pagamentosDoContrato
+                    .filter(p => p.status === "Pago")
+                    .reduce((acc, curr) => acc + (parseFloat(curr.valorParcela) || 0), 0);
+                
+                const restante = Math.max(0, totalContrato - pago);
+                const percPago = totalContrato > 0 ? Math.min(100, Math.round((pago / totalContrato) * 100)) : 0;
+
+                // Tabela Desktop
+                const tr = `
+                    <tr class="hover:bg-stone-50 transition-colors">
+                        <td class="py-3 font-medium text-stone-900">${c.fornecedor}</td>
+                        <td class="py-3 text-stone-500">${c.categoria}</td>
+                        <td class="py-3 font-semibold text-stone-900">${formatarMoeda(totalContrato)}</td>
+                        <td class="py-3 font-semibold text-emerald-600">${formatarMoeda(pago)}</td>
+                        <td class="py-3 font-semibold text-rose-600">${formatarMoeda(restante)}</td>
+                        <td class="py-3 text-right pr-2 space-x-1">
+                            <button onclick="prepararEdicaoContrato(${c.id})" class="text-stone-500 hover:text-stone-800 p-1.5 rounded-lg hover:bg-stone-100 inline-flex items-center">
+                                ✏️
+                            </button>
+                            <button onclick="deletarContratoCompleto(${c.id})" class="text-rose-500 hover:text-rose-800 p-1.5 rounded-lg hover:bg-rose-50 inline-flex items-center">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>`;
+                tbody.innerHTML += tr;
+
+                // Mobile Cards
+                const card = `
+                    <div class="p-3.5 bg-stone-50 border border-stone-200 rounded-xl space-y-2.5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-stone-900 text-sm leading-tight">${c.fornecedor}</h4>
+                                <span class="inline-block mt-0.5 text-[10px] font-semibold text-stone-500 bg-white border border-stone-200 px-2 py-0.5 rounded-md">${c.categoria}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="prepararEdicaoContrato(${c.id})" class="p-1.5 text-xs bg-white border border-stone-200 rounded-lg active:scale-90 text-stone-700">✏️</button>
+                                <button onclick="deletarContratoCompleto(${c.id})" class="p-1.5 text-xs bg-white border border-rose-200 rounded-lg active:scale-90 text-rose-600">🗑️</button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: ${percPago}%"></div>
+                            </div>
+                            <div class="flex justify-between text-[11px] font-medium text-stone-500">
+                                <span>Pago: <strong class="text-emerald-700">${formatarMoeda(pago)}</strong></span>
+                                <span>Restante: <strong class="text-rose-700">${formatarMoeda(restante)}</strong></span>
+                            </div>
+                        </div>
+
+                        <div class="pt-1 border-t border-stone-200/60 flex justify-between items-center text-xs font-semibold">
+                            <span class="text-stone-400">Total do Contrato:</span>
+                            <span class="text-stone-900 font-bold">${formatarMoeda(totalContrato)}</span>
+                        </div>
+                    </div>`;
+                listaMobile.innerHTML += card;
+            });
+        }
+
+        function renderizarFiltrosEGridPagamentos() {
+            const filtroSelect = document.getElementById('filtro-contrato');
+            const valorSelecionado = filtroSelect.value;
+            
+            filtroSelect.innerHTML = '<option value="todos">Todos os Fornecedores</option>';
+            state.contratos.forEach(c => {
+                filtroSelect.innerHTML += `<option value="${c.id}">${c.fornecedor}</option>`;
+            });
+
+            filtroSelect.value = valorSelecionado;
+            renderizarPagamentos();
+        }
+
+        function renderizarPagamentos() {
+            const filtroId = document.getElementById('filtro-contrato').value;
+            const tbody = document.getElementById('corpo-tabela-pagamentos');
+            const listaMobile = document.getElementById('lista-pagamentos-mobile');
+
+            tbody.innerHTML = '';
+            listaMobile.innerHTML = '';
+
+            let pgsFiltrados = state.pagamentos;
+            if (filtroId !== "todos") {
+                pgsFiltrados = state.pagamentos.filter(p => String(p.idContrato) === String(filtroId));
+            }
+
+            pgsFiltrados.sort((a, b) => {
+                return converterParaObjetoData(a.vencimento) - converterParaObjetoData(b.vencimento);
+            });
+
+            if (pgsFiltrados.length === 0) {
+                listaMobile.innerHTML = `<div class="p-6 text-center text-xs text-stone-400 bg-stone-50 rounded-xl">Nenhuma parcela encontrada.</div>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-xs text-stone-400">Nenhuma parcela listada.</td></tr>`;
+                return;
+            }
+
+            pgsFiltrados.forEach(p => {
+                const c = state.contratos.find(x => String(x.id) === String(p.idContrato)) || { fornecedor: "Fornecedor Removido" };
+                const valorParcela = parseFloat(p.valorParcela) || 0;
+                
+                const statusClasse = p.status === "Pago" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200";
+                const textoBotao = p.status === "Pago" ? "Reabrir" : "Quitar";
+                const classeBotao = p.status === "Pago" ? "bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200" : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs";
+
+                // Tabela Desktop
+                const tr = `
+                    <tr class="hover:bg-stone-50 transition-colors">
+                        <td class="py-3 font-semibold text-stone-900">${c.fornecedor}</td>
+                        <td class="py-3 text-stone-500">${p.numeroParcela}</td>
+                        <td class="py-3 font-semibold text-stone-800">${formatarMoeda(valorParcela)}</td>
+                        <td class="py-3 text-stone-600">${p.vencimento}</td>
+                        <td class="py-3 text-stone-500">${p.metodo || 'N/A'}</td>
+                        <td class="py-3">
+                            <span class="px-2.5 py-0.5 text-[11px] font-bold rounded-full ${statusClasse}">
+                                ${p.status}
+                            </span>
+                        </td>
+                        <td class="py-3 text-right pr-3">
+                            <button onclick="alternarStatusPagamento(${p.id})" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${classeBotao}">
+                                ${textoBotao}
+                            </button>
+                        </td>
+                    </tr>`;
+                tbody.innerHTML += tr;
+
+                // Mobile Card
+                const card = `
+                    <div class="p-3 bg-stone-50 border border-stone-200 rounded-xl flex flex-col gap-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-stone-900 text-sm">${c.fornecedor}</h4>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="text-[11px] text-stone-500">Parc. <strong>${p.numeroParcela}</strong></span>
+                                    <span class="text-[10px] text-stone-400">•</span>
+                                    <span class="text-[11px] text-stone-500">📅 ${p.vencimento}</span>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${statusClasse}">
+                                ${p.status}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-stone-200/60">
+                            <div>
+                                <span class="text-[10px] text-stone-400 uppercase font-semibold">Valor da Parcela</span>
+                                <p class="text-sm font-black text-stone-900">${formatarMoeda(valorParcela)}</p>
+                            </div>
+                            <button onclick="alternarStatusPagamento(${p.id})" class="active:scale-95 px-4 py-2 rounded-xl text-xs font-bold transition ${classeBotao}">
+                                ${textoBotao}
+                            </button>
+                        </div>
+                    </div>`;
+                listaMobile.innerHTML += card;
+            });
+        }
+
+        function atualizarFiltroGraficoFornecedores() {
+            const select = document.getElementById('grafico-filtro-fornecedor');
+            if (!select) return;
+            const selecionado = select.value;
+            select.innerHTML = '<option value="todos">Todos os Fornecedores</option>';
+            state.contratos.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.fornecedor}</option>`;
+            });
+            if (selecionado && [...select.options].some(o => o.value === selecionado)) {
+                select.value = selecionado;
+            } else {
+                select.value = "todos";
+            }
+        }
+
+        function atualizarDashboard() {
+            const corpoResumido = document.getElementById('corpo-tabela-resumida');
+            const listaResumidaMobile = document.getElementById('lista-resumida-mobile');
+            const listaAlertas = document.getElementById('lista-alertas');
+            const alertaSecao = document.getElementById('alerta-vencimento-secao');
+            const badgeQtdAlertas = document.getElementById('alerta-badge-qtd');
+            const badgeTotalResumo = document.getElementById('badge-total-contratos-resumo');
+
+            corpoResumido.innerHTML = '';
+            listaResumidaMobile.innerHTML = '';
+            listaAlertas.innerHTML = '';
+
+            let totalPagoReal = 0;
+            let totalPendenteReal = 0;
+            let alertas = [];
+            const hoje = new Date();
+            hoje.setHours(0,0,0,0);
+
+            state.pagamentos.forEach(p => {
+                const valor = parseFloat(p.valorParcela) || 0;
+                if (p.status === "Pago") {
+                    totalPagoReal += valor;
+                } else {
+                    totalPendenteReal += valor;
+
+                    if (p.vencimento) {
+                        const dataVenc = converterParaObjetoData(p.vencimento);
+                        const diffDias = Math.ceil((dataVenc - hoje) / (1000 * 60 * 60 * 24));
+                        const c = state.contratos.find(x => String(x.id) === String(p.idContrato)) || { fornecedor: "Fornecedor Desconhecido" };
+
+                        if (diffDias < 0) {
+                            alertas.push({
+                                idPagamento: p.id,
+                                fornecedor: c.fornecedor,
+                                numeroParcela: p.numeroParcela,
+                                valor: valor,
+                                vencimento: p.vencimento,
+                                diffDias: diffDias,
+                                isAtrasado: true
+                            });
+                        } else if (diffDias <= 15) {
+                            alertas.push({
+                                idPagamento: p.id,
+                                fornecedor: c.fornecedor,
+                                numeroParcela: p.numeroParcela,
+                                valor: valor,
+                                vencimento: p.vencimento,
+                                diffDias: diffDias,
+                                isAtrasado: false
+                            });
+                        }
+                    }
+                }
+            });
+
+            const totalOrcado = totalPagoReal + totalPendenteReal;
+
+            document.getElementById('total-orcado').textContent = formatarMoeda(totalOrcado);
+            document.getElementById('total-pago').textContent = formatarMoeda(totalPagoReal);
+            document.getElementById('total-pendente').textContent = formatarMoeda(totalPendenteReal);
+
+            // Renderiza Alertas com Botão de Pagamento
+            if (alertas.length > 0) {
+                alertaSecao.classList.remove('hidden');
+                badgeQtdAlertas.innerText = `${alertas.length}`;
+                
+                alertas.sort((a,b) => a.diffDias - b.diffDias);
+
+                alertas.forEach(a => {
+                    const alertCard = document.createElement('div');
+                    alertCard.className = "p-3 bg-white rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs " + 
+                                          (a.isAtrasado ? "border-rose-300 bg-rose-50/30" : "border-amber-200");
+                    
+                    const tagStatus = a.isAtrasado
+                        ? `<span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">Atrasado há ${Math.abs(a.diffDias)} dia(s)</span>`
+                        : (a.diffDias === 0 
+                            ? `<span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">Vence Hoje!</span>` 
+                            : `<span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Vence em ${a.diffDias} dias</span>`);
+
+                    alertCard.innerHTML = `
+                        <div class="flex items-start gap-2">
+                            <span class="text-base">${a.isAtrasado ? '🚨' : '⏰'}</span>
+                            <div>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <h4 class="font-bold text-stone-900 text-xs sm:text-sm">${a.fornecedor}</h4>
+                                    ${tagStatus}
+                                </div>
+                                <p class="text-xs text-stone-500 mt-0.5">
+                                    Parcela <strong>${a.numeroParcela}</strong> • Venceu/Vence em: <strong>${a.vencimento}</strong> • Valor: <strong class="text-stone-900 font-bold">${formatarMoeda(a.valor)}</strong>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="self-end sm:self-center">
+                            <button onclick="alternarStatusPagamento(${a.idPagamento})" class="active:scale-95 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1">
+                                <span>✓</span> <span>Pagar Agora</span>
+                            </button>
+                        </div>
+                    `;
+                    listaAlertas.appendChild(alertCard);
+                });
+            } else {
+                alertaSecao.classList.add('hidden');
+            }
+
+            // Exibição de TODOS os contratos (sem limitar a 5)
+            const todosContratos = [...state.contratos].sort((a,b) => b.id - a.id);
+            if (badgeTotalResumo) {
+                badgeTotalResumo.innerText = `${todosContratos.length} contrato(s)`;
+            }
+
+            if (todosContratos.length === 0) {
+                corpoResumido.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-xs text-stone-400">Nenhum contrato cadastrado.</td></tr>`;
+                listaResumidaMobile.innerHTML = `<div class="p-4 text-center text-xs text-stone-400 bg-stone-50 rounded-xl">Nenhum contrato cadastrado.</div>`;
+            } else {
+                todosContratos.forEach(c => {
+                    const totalContrato = parseFloat(c.valorTotal) || 0;
+                    const pagoC = state.pagamentos.filter(p => String(p.idContrato) === String(c.id) && p.status === "Pago").reduce((acc, cur) => acc + (parseFloat(cur.valorParcela) || 0), 0);
+                    const pendenteC = Math.max(0, totalContrato - pagoC);
+
+                    corpoResumido.innerHTML += `
+                        <tr class="hover:bg-stone-50/70 transition-colors">
+                            <td class="py-2.5 font-medium text-stone-800">${c.fornecedor}</td>
+                            <td class="py-2.5 text-stone-500">${c.categoria}</td>
+                            <td class="py-2.5 font-semibold text-stone-900">${formatarMoeda(totalContrato)}</td>
+                            <td class="py-2.5 text-emerald-600 font-semibold">${formatarMoeda(pagoC)}</td>
+                            <td class="py-2.5 text-rose-600 font-semibold">${formatarMoeda(pendenteC)}</td>
+                        </tr>`;
+
+                    listaResumidaMobile.innerHTML += `
+                        <div class="p-3 bg-stone-50 border border-stone-200 rounded-xl flex justify-between items-center text-xs">
+                            <div>
+                                <h4 class="font-bold text-stone-900">${c.fornecedor}</h4>
+                                <span class="text-stone-400 text-[10px]">${c.categoria}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-bold text-stone-900 block">${formatarMoeda(totalContrato)}</span>
+                                <span class="text-[10px] text-emerald-600 font-semibold">Pago: ${formatarMoeda(pagoC)}</span>
+                            </div>
+                        </div>`;
+                });
+            }
+            renderizarGrafico();
+        }
+
+        function renderizarGrafico() {
+            const ctx = document.getElementById('graficoCategorias').getContext('2d');
+            const filtroFornecedor = document.getElementById('grafico-filtro-fornecedor')?.value || 'todos';
+            const modoAgrupamento = document.getElementById('grafico-agrupamento')?.value || 'categoria';
+            const totalBadge = document.getElementById('grafico-total-badge');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            let labels = [];
+            let data = [];
+            let cores = [];
+            let totalExibido = 0;
+
+            const paletaCores = ['#f3d7d2', '#d97d70', '#bf5d50', '#a4d4b4', '#8ecae6', '#ffb703', '#7209b7', '#f72585', '#4d908e', '#f9844a'];
+
+            // CASO 1: Fornecedor Específico Selecionado
+            if (filtroFornecedor !== "todos") {
+                const c = state.contratos.find(item => String(item.id) === String(filtroFornecedor));
+                if (c) {
+                    const totalC = parseFloat(c.valorTotal) || 0;
+                    const pagoC = state.pagamentos
+                        .filter(p => String(p.idContrato) === String(c.id) && p.status === "Pago")
+                        .reduce((acc, cur) => acc + (parseFloat(cur.valorParcela) || 0), 0);
+                    const pendenteC = Math.max(0, totalC - pagoC);
+
+                    labels = ["Já Quitado", "Saldo a Pagar"];
+                    data = [pagoC, pendenteC];
+                    cores = ['#10b981', '#f43f5e'];
+                    totalExibido = totalC;
+                }
+            } 
+            // CASO 2: Todos os Fornecedores
+            else {
+                const agregados = {};
+
+                if (modoAgrupamento === 'categoria') {
+                    state.categorias.forEach(cat => agregados[cat] = 0);
+                    state.contratos.forEach(c => {
+                        const cat = c.categoria || "Outros";
+                        const total = parseFloat(c.valorTotal) || 0;
+                        agregados[cat] = (agregados[cat] || 0) + total;
+                    });
+                } else {
+                    state.contratos.forEach(c => {
+                        const forn = c.fornecedor || "Sem Nome";
+                        const total = parseFloat(c.valorTotal) || 0;
+                        agregados[forn] = (agregados[forn] || 0) + total;
+                    });
+                }
+
+                Object.keys(agregados).forEach(key => {
+                    if (agregados[key] > 0) {
+                        labels.push(key);
+                        data.push(agregados[key]);
+                        totalExibido += agregados[key];
+                    }
+                });
+                cores = paletaCores.slice(0, labels.length);
+            }
+
+            if (totalBadge) {
+                totalBadge.textContent = formatarMoeda(totalExibido);
+            }
+
+            if (labels.length === 0) {
+                labels.push("Sem Lançamentos");
+                data.push(1);
+                cores = ['#e5e7eb'];
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: cores,
+                        borderWidth: 1.5,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 10,
+                                font: { size: 10 },
+                                padding: 8
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const val = context.parsed || 0;
+                                    return ` ${label}: ${formatarMoeda(val)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderizarCategorias() {
+            const selectForm = document.getElementById('categoria');
+            const listaConfig = document.getElementById('lista-categorias-config');
+            
+            if (!selectForm || !listaConfig) return;
+            
+            selectForm.innerHTML = '';
+            listaConfig.innerHTML = '';
+
+            state.categorias.forEach((cat, index) => {
+                const opt = document.createElement('option');
+                opt.value = cat; opt.textContent = cat;
+                selectForm.appendChild(opt);
+
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center px-3 py-2 hover:bg-stone-50";
+                li.innerHTML = `
+                    <span>${cat}</span>
+                    <button onclick="removerCategoria(${index})" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1">Excluir</button>
+                `;
+                listaConfig.appendChild(li);
+            });
+        }
+
+        async function adicionarCategoria() {
+            const input = document.getElementById('nova-categoria');
+            const nova = input.value.trim();
+            if (nova && !state.categorias.includes(nova)) {
+                state.categorias.push(nova);
+                input.value = '';
+                renderizarCategorias();
+                updateAndSync();
+            }
+        }
+
+        async function removerCategoria(index) {
+            state.categorias.splice(index, 1);
+            renderizarCategorias();
+            updateAndSync();
+        }
+
+        function recuperarConfiguracoesLocais() {
+            if (state.apiUrl) {
+                document.getElementById('api-url').value = state.apiUrl;
+            }
+            
+            const savedState = localStorage.getItem('db_state_casamento');
+            if (savedState) {
+                const parsed = JSON.parse(savedState);
+                if (Array.isArray(parsed.categorias)) state.categorias = parsed.categorias;
+            }
+            renderizarCategorias();
+        }
+
+        function salvarConfiguracaoApi() {
+            const url = document.getElementById('api-url').value.trim();
+            state.apiUrl = url;
+            localStorage.setItem('api_sheets_url', url);
+            alert("URL de sincronização configurada!");
+            loadFromCloud();
+        }
+
+        function generateShareQr() {
+            const qrContainer = document.getElementById('qrShareContainer');
+            const qrImg = document.getElementById('qrShareImg');
+            const qrShareLink = document.getElementById('qrShareLink');
+            
+            const baseUrl = window.location.origin + window.location.pathname;
+            
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(baseUrl)}`;
+            qrShareLink.value = baseUrl;
+            qrContainer.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
